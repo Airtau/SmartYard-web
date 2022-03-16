@@ -1,0 +1,123 @@
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Договор</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;700&display=block" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="/app_static/css/styles.css?v=3">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="/app_static/js/lanta.js"></script>
+  <script>
+    showBonusesPage = function(item) {
+      document.body.innerHTML = `
+  <div class="container">
+    <div class="title">Бонусы</div>
+    <div class="item main_container">
+      <div class="main_row_1">
+        <span class="level_part1 header1">Уровень:</span>
+        <span class="level_part2">` + (item.bonusLevel < 10 ? item.bonusLevel : 10) + `/10</span>
+      </div>
+      <div class="main_row_2">
+        <div class="header1">Ваш бонусный баланс</div>
+        <div class="row_2_content">
+          <span class="row_2_content_amount">` + item.bonus + `</span>
+          <span class="row_2_content_units">баллов</span>
+        </div>
+      </div>
+      <div class="main_row_3">
+        <div class="row_3_text">Обменяйте рубли на бонусы</div>
+        <img class="row_3_image" src="/app_static/img/exchange_bonuses.png">
+      </div>`+
+      function () {
+        if (item.bonus >= 100) {
+          return `<a class="main_row_4" href="/app_static/bonuses/exchange_dialog.html?client_id=` + item.clientId + `&bonus=` + item.bonus + `" target="_blank">Обменять</a>`;
+        } else {
+          return `<div class="main_row_4 disabled">Обменять</div>`;
+        }
+      }()
+      
+    +`</div>
+    <a class="item item_container" href="/app_static/bonuses/bonus_table.html" target="_blank">
+        <span class="item_text">Таблица зависимости процентов от уровней</span>
+        <img src="/app_static/img/right_arrow.png" class="arrow">
+    </a>
+    <a class="item item_container" href="/app_static/bonuses/bonus_agreement.html" target="_blank">
+      <span class="item_text">Условия бонусной программы</span>
+      <img src="/app_static/img/right_arrow.png" class="arrow">
+    </a>
+  </div>
+`;
+    }
+    
+    showSelectContractPage = function(items) {
+      document.body.innerHTML = `<div class="container"><div class="title">Выберите договор</div>` + 
+        items.map( (item) => `<a class="item item_container" href="index.html?client_id=` + item.clientId + `">
+        <span class="item_text">` + item.contractName + `<br>` + item.address + `</span>
+        <img src="/app_static/img/right_arrow.png" class="arrow">
+        </a>`).join('\n') + 
+        `</div>`;
+    }
+
+    window.onerror = function(error) {
+      alert(error); // Fire when errors occur. Just a test, not always do this.
+    }
+
+    window.onload = function() {
+    postLoadingStarted()
+
+    let url = new URL(document.location.href);
+    let clientId = url.searchParams.get('client_id');
+    let forceRefresh = url.searchParams.get('forceRefresh');
+
+    var headers = {
+        'Authorization':'Bearer ' + bearerToken(),
+        'Content-Type':'application/json'
+    }
+    if (forceRefresh) {
+        Object.assign(headers,{'X-Dm-Api-Refresh':''});
+    }
+
+    $.ajax({
+    url: 'https://dm.lanta.me/api/user/getPaymentsList',
+    headers: headers,
+    method: 'POST',
+    dataType: 'json',
+    data: '',
+    success: function(data){
+        const response = data.data.flatMap(
+          function(item) { 
+              return item.accounts.map( 
+                  function(account) {
+                      let newitem = account;
+                      newitem.address = item.address;
+                      newitem.flatId = item.flatId;
+                      newitem.houseId = item.houseId;
+                      return newitem;
+                  }
+              );
+          } 
+      );
+      
+      if (clientId) {
+        showBonusesPage(response.find( item => item.clientId == clientId));
+        return;
+      }
+      if (response.length == 1) {
+        let item = response[0];
+        showBonusesPage(item);
+      } else {
+        showSelectContractPage(response);
+      }
+
+      postloadingFinished();
+    }
+  });
+
+    }
+  </script>
+</head>
+<body>
+</body>
+</html>
