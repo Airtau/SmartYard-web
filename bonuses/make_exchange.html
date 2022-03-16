@@ -71,12 +71,13 @@
       window.userData = data;
       showSuccess(amount);
       postloadingFinished();
+      postRefreshParent(5);
     },
     error: function(error){
       window.userError = error;
       showError(error.responseJSON.message);
       postloadingFinished();
-      postRefreshParent(1);
+      postRefreshParent(5);
     }
   });
 
