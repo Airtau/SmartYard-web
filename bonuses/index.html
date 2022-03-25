@@ -102,6 +102,7 @@
       
       if (clientId) {
         showBonusesPage(response.find( item => item.clientId == clientId));
+	postloadingFinished(); 
         return;
       }
       if (response.length == 1) {
