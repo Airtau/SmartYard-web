@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;700&display=block" rel="stylesheet">
-  <link rel="stylesheet" type="text/css" href="/app_static/css/styles.css?v=1">
+  <link rel="stylesheet" type="text/css" href="/app_static/css/lanta.css?v=2">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <script src="/app_static/js/lanta.js"></script>
   <script>
@@ -27,18 +27,18 @@
           realAmount = 0;
       } 
 
-      document.body.innerHTML = `<div class="popup_container">
+      document.body.innerHTML = `<div class="popup-container">
     <div class="title1">Готово!</div>
     <div class="text14center">Обмен ` + amount + ` бонусов на ` + realAmount + ` рублей завершен</div>
-    <img src="/app_static/img/done_icon.png" class="img_big" >
+    <img src="/app_static/img/done_icon.png" class="img-big" >
   </div>`;
     }
 
     showError = function(messsage) {
-      document.body.innerHTML = `<div class="popup_container">
+      document.body.innerHTML = `<div class="popup-container">
     <div class="title1">Ошибка!</div>
     <div class="text14center">` + messsage + `</div>
-    <img src="/app_static/img/error_icon.png" class="img_big" >
+    <img src="/app_static/img/error_icon.png" class="img-big" >
   </div>`;
     }
 
@@ -84,6 +84,6 @@
     }
   </script>
 </head>
-<body class="white_bg">
+<body class="white-bg">
 </body>
 </html>

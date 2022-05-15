@@ -7,39 +7,39 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;700&display=block" rel="stylesheet">
-  <link rel="stylesheet" type="text/css" href="/app_static/css/styles.css?v=5">
+  <link rel="stylesheet" type="text/css" href="/app_static/css/lanta.css?v=5">
   <script>
     
     showDialog = function(clientId, bonus) {
-      document.body.innerHTML = `<div class="popup_container">
-    <div class="popup_row">
+      document.body.innerHTML = `<div class="popup-container">
+    <div class="popup-row">
       <div class="title2" style="margin: 0px 0px 20px;">Обменять бонусы на рубли</div>
     </div>
-    <div class="popup_row">
+    <div class="popup-row">
       <form action="make_exchange.html" method="GET" target="_blank">` + 
         function() {
           if (bonus >= 100) {
-            return `<div class="input_wrapper">
-          <input type="radio" id="option100" name="amount" value="100" class="hidden_checkbox" checked>
-          <label for="option100" class="label_element"><span>100 бонусов на 100 рублей</span></label>
+            return `<div class="input-wrapper">
+          <input type="radio" id="option100" name="amount" value="100" class="hidden-checkbox" checked>
+          <label for="option100" class="label-element"><span>100 бонусов на 100 рублей</span></label>
         </div>`;
           }
           return '';
         }() + 
         function() {
           if (bonus >= 200) {
-            return `<div class="input_wrapper">
-          <input type="radio" id="option200" name="amount" value="200" class="hidden_checkbox">
-          <label for="option200" class="label_element"><span>200 бонусов на 210 рублей</span></label>
+            return `<div class="input-wrapper">
+          <input type="radio" id="option200" name="amount" value="200" class="hidden-checkbox">
+          <label for="option200" class="label-element"><span>200 бонусов на 210 рублей</span></label>
         </div>`;
           }
           return '';
         }() +
         function() {
           if (bonus >= 300) {
-            return `<div class="input_wrapper">
-          <input type="radio" id="option300" name="amount" value="300" class="hidden_checkbox">
-          <label for="option300" class="label_element"><span>300 бонусов на 330 рублей</span></label>
+            return `<div class="input-wrapper">
+          <input type="radio" id="option300" name="amount" value="300" class="hidden-checkbox">
+          <label for="option300" class="label-element"><span>300 бонусов на 330 рублей</span></label>
         </div>`;
           }
           return '';
@@ -64,6 +64,6 @@
     }
   </script>
 </head>
-<body class="white_bg">
+<body class="white-bg">
 </body>
 </html>
