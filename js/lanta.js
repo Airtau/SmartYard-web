@@ -1,23 +1,44 @@
+var isAndroid = window.navigator.userAgent.toLowerCase().includes("android");
+
     postLoadingStarted = function() {
-        if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.loadingStartedHandler) {
+        if (isAndroid) {
+            Android.postLoadingStarted();
+        } else {
+            if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.loadingStartedHandler) {
                 window.webkit.messageHandlers.loadingStartedHandler.postMessage({
                     "loading": "started"
                 });
+            }
         }
     }
 
     postloadingFinished = function() {
-        if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.loadingFinishedHandler) {
+        if (isAndroid) {
+            Android.postloadingFinished();
+        } else {
+            if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.loadingFinishedHandler) {
                 window.webkit.messageHandlers.loadingFinishedHandler.postMessage({
                     "loading": "finished"
                 });
+            }
         }
     }
 
     postRefreshParent = function(timeout) {
-        if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.refreshParentHandler) {
+        if (isAndroid) {
+            Android.postRefreshParent(timeout);
+        } else {
+            if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.refreshParentHandler) {
                 window.webkit.messageHandlers.refreshParentHandler.postMessage({
                     "timeout": timeout
                 });
+            }
         }
     }
+
+    if (isAndroid) {
+        bearerToken = function() {
+            return Android.bearerToken();
+        }
+    }
+    
