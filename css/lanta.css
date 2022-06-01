@@ -249,6 +249,7 @@ div.main-item-container:last-child {
   line-height: 18px;
   color: #6D7A8A;
   margin: 12px 0px;
+  text-align: center;
 }
 
 .img-big {
@@ -347,4 +348,10 @@ div.main-item-container:last-child {
   margin: 40px 0px 0px;
   border-width: 0px;
   width:100%; 
+}
+
+.img_big {
+  width: 100px;
+  height: 100px;
+  margin: 40px 0px 0px;
 }
