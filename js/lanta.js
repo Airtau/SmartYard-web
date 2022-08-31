@@ -42,3 +42,9 @@ var isAndroid = window.navigator.userAgent.toLowerCase().includes("android");
         }
     }
     
+    if (typeof bearerToken != 'function') {
+	bearerToken = function() {
+	    let url = new URL(document.location.href);
+            return  url.searchParams.get('token');
+	}
+    }

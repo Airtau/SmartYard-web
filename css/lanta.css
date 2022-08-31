@@ -1,6 +1,13 @@
+input[type=text], input[type=password], input[type=email], input[type=number], input[type=time], input[type=date], textarea {
+  -webkit-touch-callout: auto;
+  -webkit-user-select: auto;
+}
+
 * {
   margin: 0px;
   padding: 0px;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
 }
 
 body {
