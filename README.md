@@ -42,7 +42,7 @@ web-расширения для приложений
 * **#smart-yard-external** - ссылка будет открыта в браузере (альтернатива target=_blank)
 
 Для **WebPopupController**:
-* **#smart-yard-push** - шторка закрывается, создаётся новый **WebViewController**, который будет запушен в NavigationStack. подпись для кнопки "Назад" будет взята из **title** страницы, открывшей шторку.
+* **#smart-yard-push** - шторка закрывается, создаётся новый **WebViewController**, который будет запушен в NavigationStack. 
 * **#smart-yard-popup** - создаётся новый **WebPopupController** и заменяет текущий.
 * **#smart-yard-replace** - шторка закрывается, будет создан новый **WebViewController** и будет осуществлена замена видимого контроллера в NavigationStack.
 * **#smart-yard-external** - ссылка будет открыта в браузере (альтернатива target=_blank)
