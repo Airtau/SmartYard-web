@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Document</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;700&display=block" rel="stylesheet">
+    <link rel="stylesheet" href="../css/lanta.css?v=6">
+    <link rel="stylesheet" href="styles.css?v=6">
+    <script src="../js/lanta.js"></script>
+</head>
+<body class="bg-light">
+    <div class="page page--popup">
+        <div class="page__header">Выберите банк для оплаты</div>
+        <div class="page__content">
+            <div class="bank-list">
+                <form class="bank-list__search bank-search">
+                    <input id="search" class="bank-search__input" placeholder="Поиск нужного банка">
+                </form>
+                <div class="bank-list__items"></div>
+            </div>
+        </div>
+    </div>
+
+    <template id="template-bank-item">
+        <a class="bank-list__item" href="#">
+            <img class="bank-list__logo" width="50" height="50">
+            <span class="bank-list__name"></span>
+        </a>
+    </template>
+
+    <script>
+        const isInstall = function(url, result) {
+            if (!result) {
+                document.querySelector(`[href="${url}"]`).classList.add('bank-list__item--hidden');
+            }
+        };
+
+        (async () => {
+	    const params = new URLSearchParams(document.location.search);
+	    const payload = decodeURIComponent(params.get('payload'));
+
+
+            const getMembers = async () => {
+                const response = await fetch('https://qr.nspk.ru/proxyapp/c2bmembers.json');
+                const data =  await response.json();
+                return data.dictionary;
+            };
+
+            const getFavoriteBanks = () => {
+                const banksRow = document.cookie.split(';').find(row => row.startsWith('favorite-banks='));
+                return banksRow ? JSON.parse(decodeURIComponent(banksRow.split('=')[1])) : [];
+            };
+
+            const setFavoriteBanks = bankList => {
+                const maxAge = 86400 * 365;
+                const value = encodeURIComponent(JSON.stringify(bankList));
+
+                document.cookie = `favorite-banks=${value};path=/;same-site=strict;max-age=${maxAge}`;
+            };
+
+            const addFavoriteBank = schema => {
+                const favoriteBanks = getFavoriteBanks();
+                if (false === favoriteBanks.includes(schema)) {
+                    setFavoriteBanks([schema, ...favoriteBanks.filter(element => element.schema !== schema)]);
+                }
+            };
+
+            const [container, template] = document.querySelectorAll('.bank-list__items, #template-bank-item');
+            let members = await getMembers();
+
+            /* Set favorite banks to top of list */
+            const favoriteBanks = getFavoriteBanks();
+
+            if (favoriteBanks.length > 0) {
+                const membersFavorite = [];
+
+                favoriteBanks.forEach(element => {
+                    const needed = members.find(item => item.schema === element);
+
+                    if (undefined !== needed) {
+                        membersFavorite.push(needed);
+                    }
+                });
+
+                members = [
+                    ...membersFavorite,
+                    ...members.filter(item => membersFavorite.every(element => element.schema !== item.schema))
+                ];
+            }
+
+            /* Render banks list */
+            members.forEach(bank => {
+                /* Filter installed banks on Android */
+                if (isAndroid && typeof Android.isAppInstalled === 'function') {
+                    if (!Android.isAppInstalled(payload.replace('https', bank.schema))) {
+                        return;
+                    }
+                }
+
+                const clone = template.content.cloneNode(true);
+                const [item, logo, name] = clone.querySelectorAll('.bank-list__item, .bank-list__logo, .bank-list__name');
+
+                name.textContent = bank.bankName;
+                logo.dataset.src = bank.logoURL;
+                item.href = payload.replace('https', bank.schema);
+                item.target = '_blank';
+
+                container.appendChild(clone);
+            });
+
+            /* Filter installed banks on iOS */
+            if (typeof isAppInstalled === 'function') {
+                [...container.querySelectorAll('.bank-list__item')].forEach(item => isAppInstalled(item.href, isInstall));
+            }
+
+            /* Search bank */
+            const search = document.querySelector('.bank-search__input');
+            search.onblur = () => window.scrollTo(0, 1);
+
+            search.oninput = () => {
+                const input = search.value.toLowerCase();
+
+                [...container.querySelectorAll('.bank-list__name')].forEach(element => {
+                    let parent = element.closest('.bank-list__item');
+
+                    if (element.textContent.toLowerCase().indexOf(input) === -1) {
+                        parent.classList.add('bank-list__item--hidden');
+                    } else {
+                        parent.classList.remove('bank-list__item--hidden');
+                    }
+                });
+            };
+
+            /* Lazy loading logos */
+            const images = [...container.querySelectorAll('.bank-list__logo')];
+
+            if ('function' !== typeof IntersectionObserver) {
+                images.forEach(element => element.setAttribute('src', element.dataset.src));
+            } else {
+                const observer = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (true === entry.isIntersecting) {
+                            entry.target.src = entry.target.dataset.src;
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                });
+
+                images.forEach(image => observer.observe(image));
+            }
+        })();
+    </script>
+</body>
+</html>

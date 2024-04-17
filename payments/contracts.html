@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Выберите договор</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;700&display=block" rel="stylesheet">
+    <link rel="stylesheet" href="../css/lanta.css?v=7">
+    <link rel="stylesheet" href="styles.css?v=7">
+    <script src="../js/lanta.js"></script>
+</head>
+<body>
+    <div class="page page--contracts">
+        <div class="page__header"></div>
+
+        <div class="page__content page__content--carousel">
+            <div class="payment-carousel"></div>
+        </div>
+    </div>
+
+    <template id="template-carousel-item">
+        <div class="payment-carousel__item payment-card">
+            <div class="payment-card__header">
+                <span class="payment-card__contract-label">Договор:</span>
+                <span class="payment-card__contract-name"></span>
+            </div>
+            <div class="payment-card__content">
+                <div class="payment-card__balance"></div>
+            </div>
+            <div class="payment-card__footer">
+                <div class="payment-card__services payment-services"></div>
+                <a class="payment-card__pay" href="#">Оплатить</a>
+
+                <a class="payment-card__lc" href="#" target="_blank">Полная версия личного кабинета</a>
+            </div>
+        </div>
+    </template>
+
+    
+    <script>
+        (async () => {
+            const params = new URLSearchParams(document.location.search);
+            const current = params.get('current');
+
+            const token = bearerToken();
+
+            const getPaymentsList = async () => {
+                const headers = new Headers();
+                headers.append('Content-Type', 'application/json');
+                headers.append('Authorization', `Bearer ${token}`);
+
+                const response = await fetch('https://dm.lanta.me/api/user/getPaymentsList', { method: 'POST', headers: headers });
+                return await response.json();
+            };
+            const response = await getPaymentsList();
+            const data = response.data;
+
+            /* Services list for build status icons */
+            const servicesList = ['internet', 'iptv', 'phone', 'domophone', 'cctv'];
+
+            //const data = JSON.parse(params.get('data'));
+
+            const [header, container, template] = [...document.querySelectorAll('.page__header, .payment-carousel, #template-carousel-item')];
+
+            /* Render contracts into carousel items */
+            data.forEach(address => {
+                address.accounts.forEach(account => {
+                    const clone = template.content.cloneNode(true);
+                    const item = clone.querySelector('.payment-carousel__item');
+                    const [balance, contract, services, pay, lc] = ['balance', 'contract-name', 'services', 'pay', 'lc'].map(item =>
+                        clone.querySelector(`.payment-card__${item}`)
+                    );
+
+                    item.dataset.client = account.clientId;
+                    balance.textContent = account.balance;
+                    contract.textContent = account.contractName;
+                    pay.href = `pay.html?contract=${account.contractName.split('/')[0]}#smart-yard-popup`;
+                    lc.href = account.lcab
+
+                    /* Insert status icons of services */
+                    servicesList.forEach(service => {
+                        const image = document.createElement('img');
+                        const status = account.services.includes(service) ? 'active' : 'inactive';
+
+                        image.src = `../img/icons/${service}_${status}.png`;
+                        image.classList.add('payment-services__item');
+                        services.appendChild(image);
+                    });
+
+                    container.append(clone);
+                });
+            });
+
+            /* Oberve active carousel item for update title from it */
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const clientId = entry.target.dataset.client;
+                        header.textContent = data.find(address => address.accounts.some(account => account.clientId === clientId)).address;
+                    }
+                });
+            }, {threshold: 0.75});
+
+            container.querySelectorAll('.payment-carousel__item').forEach(item => {
+                observer.observe(item);
+                if (item.dataset.client === current) {
+                    item.scrollIntoView();
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

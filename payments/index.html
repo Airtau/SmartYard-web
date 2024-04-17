@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выберите адрес</title>
+    <!--
+    <link rel="preload" href="styles.css" as="style">
+    <link rel="preload" href="payment.js" as="script">
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;700&display=block" rel="stylesheet">
+    <link rel="stylesheet" href="../css/lanta.css?v=4">
+    <link rel="stylesheet" href="styles.css?v=4">
+    <script src="../js/lanta.js"></script>
+</head>
+<body>
+    <div class="page">
+        <div class="page__header">Выберите адрес</div>
+        <div class="page__content">
+            <nav class="payment-contracts"></nav>
+        </div>
+    </div>
+
+    <template id="contract">
+        <a class="payment-contracts__item">
+            <div class="payment-contracts__contract"></div>
+            <div class="payment-contracts__address"></div>
+        </a>
+    </template>
+
+    <script>
+        (async () => {
+            postLoadingStarted();
+            const token = bearerToken();
+
+            const [paymentAddresses, template] = document.querySelectorAll('.payment-contracts, #contract');
+
+            const getPaymentsList = async () => {
+                const headers = new Headers();
+                headers.append('Content-Type', 'application/json');
+                headers.append('Authorization', `Bearer ${token}`);
+
+                const response = await fetch('https://dm.lanta.me/api/user/getPaymentsList', { method: 'POST', headers: headers });
+                if (200 !== response.status) {
+                    paymentAddresses.textContent = 204 === response.status ? 'Нет договоров для оплаты' : 'Повторите запрос позже';
+                    return { data: [] }
+                }
+
+                return await response.json();
+            };
+
+            const paymentsList = await getPaymentsList();
+
+            paymentsList.data.forEach(element => {
+                element.accounts.forEach(account => {
+                    const clone = template.content.cloneNode(true);
+                    const [container, address, contract] = clone.querySelectorAll(
+                        '.payment-contracts__item, .payment-contracts__address, .payment-contracts__contract'
+                    );
+
+                    container.href = account.clientId;
+                    contract.textContent = account.contractName;
+
+                    address.textContent = element.address;
+                    container.addEventListener('click', (evt) => {
+                        evt.preventDefault();
+                        window.location.href = `contracts.html?current=${account.clientId}#smart-yard-push`;
+                    });
+
+                    paymentAddresses.appendChild(clone);
+                });
+            });
+            postloadingFinished();
+        })();
+
+    </script>
+</body>
+</html>
