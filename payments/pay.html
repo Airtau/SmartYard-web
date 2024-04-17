@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" class="ha">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Document</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;700&display=block" rel="stylesheet">
+    <link rel="stylesheet" href="../css/lanta.css?v=11">
+    <link rel="stylesheet" href="styles.css?v=11">
+    <script src="../js/lanta.js"></script>
+    <style>
+    </style>
+</head>
+<body class="bg-light ha">
+    <div class="page page--popup">
+        <div class="page__header page__header--center">Пополнить баланс</div>
+        <div class="page__content">
+            <div class="payment-contract"></div>
+
+            <form class="payment-form" id="pay" action="" method="get">
+                <div class="payment-form__item">
+                    <input id="amount" class="payment-form__input" type="text" inputmode="decimal" placeholder="Сумма">
+                    <div class="payment-form__feedback">Сумма платежа должна быть положительным числом и не должна превышыть 15 000</div>
+                </div>
+
+                <div class="payment-form__item">
+                    <button class="payment-form__submit" type="submit"><img src="../img/sbp-mb.png"> Оплатить</button>
+                </div>
+
+                <div class="payment-form__item">
+                    <button class="payment-form__card" type="submit">Оплатить банковской картой</button>
+                </div>
+
+                <input id="contract" type="hidden">
+            </form>
+
+        </div>
+    </div>
+    <script>
+        const form = document.forms.pay;
+        const [contract, amount] = [form.elements.contract, form.elements.amount];
+
+        const params = new URLSearchParams(document.location.search);
+        const data = params.get('contract');
+
+        const paymentContract = document.querySelector('.payment-contract');
+        paymentContract.textContent = data;
+
+        amount.oninput = () => {
+            amount.value = amount.value.replace(/[^0-9,.]|([\.,].*)[\.,]|([\.,]\d{1,2}).*/g, '$1$2');
+        };
+
+        /* Workaround for old devices without support SubmitEvent.submitter */
+        let lastBtn = null;
+        document.querySelectorAll('button[type="submit"]').forEach(button => button.addEventListener('click', () => {
+            lastBtn = button;
+        }));
+
+        form.onsubmit = event => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (!event.submitter) {
+                event.submitter = lastBtn;
+            }
+
+            const isRbsPayment = event.submitter.classList.contains('payment-form__card');
+
+            [...form.querySelectorAll('.payment-form__input--invalid')].forEach(element =>
+                element.classList.remove('payment-form__input--invalid')
+            );
+
+            const amountValue = parseFloat(amount.value.replace(',', '.'));
+            if (isNaN(amountValue) || amountValue <= 0 || amountValue > 15000) {
+                amount.classList.add('payment-form__input--invalid');
+            }
+
+            if (form.querySelectorAll('.payment-form__input--invalid').length > 0) {
+                return;
+            }
+
+            postLoadingStarted();
+
+            const entry = isRbsPayment === false ? 'sbp' : 'rbseq';
+                fetch(`https://gazprombank.lanta.me/lanta-api/v1/call_pay/${entry}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    id_client: data,
+                    amount: amountValue,
+                    source: isRbsPayment === false ? 'sbp_app' : 'rbs_app',
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status !== 'ok') {
+                    alert(data.message);
+                }
+
+                if (isRbsPayment === false) {
+                    const callPayId = data.response.call_pay_id;
+                    const deadline = data.response.deadline;
+                    const payload = encodeURIComponent(data.response.payload);
+
+                    window.location.href = `redirect.html?call_pay_id=${callPayId}&deadline=${deadline}&payload=${payload}#smart-yard-replace`;
+
+                    /* Временный костыль для андроид. В старых версиях приложения, не открывалась ссылка на банк, если
+                     * страница загружена в popup контроллере. Поэтому для него страница со списком банков грузится в
+                     * новом контроллере.
+                     * Нужно убрать #smart-yard-push как только достаточное количество клиентов обновятся
+                     * и можно будет зафорсить обновление.
+                     */
+                     /*
+                    if (isAndroid && typeof Android.isAppInstalled !== 'function') {
+                        window.location.href = `bank.html?payload=${encodeURIComponent(data.response.payload)}#smart-yard-push`;
+                    } else {
+                        window.location.href = `bank.html?payload=${encodeURIComponent(data.response.payload)}`;
+                    }
+                    */
+                } else {
+                    window.location.href = `${data.response.formUrl}#smart-yard-push`;
+                }
+
+                postloadingFinished();
+            });
+        }
+    </script>
+</body>
+</html>
